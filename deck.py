@@ -1,5 +1,6 @@
 from typing import *
 from random import sample
+import itertools
 
 RANKS = {0 : 2, 1 : 3, 2 : 4, 3 : 5, 4 : 6, 5 : 7, 6 : 8, 7 : 9, 8 : 10, 9 : 'J', 10 : 'Q', 11 : 'K', 12 : 'A'} #maybe dont need
 SUITS = {0 : '♣', 1 : '♦', 2 : '♥', 3 : '♠'} #maybe dont need
@@ -59,24 +60,24 @@ def evalHand(cards: List[int]): #evaluate 5-card hand
             counts.append((count, rank))
     counts = sorted(counts, reverse=True) #sort by descending count and rank
 
-    #maybe edit logic above for royal flush
-
+    #return tuple for future lexographic comparison (category, kickers...)
     if (straight and flush):
         if (straightHigh == 12):
             category = 9 #royal flush
+            kickers = [-1] * 5
         else:
             category = 8 #straight flush
-            kickers = [straightHigh] + [0] * 4
+            kickers = [straightHigh] + [-1] * 4
     elif (counts[0][0] == 4):
         category = 7 #four of a kind
         fourRank = counts[0][1]
         kicker = ranks.index(1) #store rank of remaining card that's not part of 4 of a kind
-        kickers = [fourRank, kicker] + [0] * 3
+        kickers = [fourRank, kicker] + [-1] * 3
     elif (counts[0][0] == 3 and counts[1][0] == 2):
         category = 6 #full house
         threeRank = counts[0][1]
         twoRank = counts[1][1]
-        kickers = [threeRank, twoRank] + [0] * 3
+        kickers = [threeRank, twoRank] + [-1] * 3
     elif (flush):
         category = 5 #flush
         flushRanks = list()
@@ -85,7 +86,7 @@ def evalHand(cards: List[int]): #evaluate 5-card hand
         kickers = sorted(flushRanks, reverse=True) #sort ranks in descending order
     elif (straight):
         category = 4 #straight
-        kickers = [straightHigh] + [0] * 4
+        kickers = [straightHigh] + [-1] * 4
     elif (counts[0][0] == 3):
         category = 3 #three of a kind
         threeRank = counts[0][1]
@@ -93,12 +94,12 @@ def evalHand(cards: List[int]): #evaluate 5-card hand
         for card in cards: #get remaining ranks that aren't part of three of a kind
             if (card % 13 != threeRank):
                 remainingRanks.append(card % 13)
-        kickers = [threeRank] + sorted(remainingRanks, reverse=True) + [0] * 2
+        kickers = [threeRank] + sorted(remainingRanks, reverse=True) + [-1] * 2
     elif (counts[0][0] == 2 and counts[1][0] == 2):
         category = 2 #two pair
         highPairRank, lowPairRank = counts[0][1], counts[1][1]
         kicker = ranks.index(1) #store rank of remaining card that's not in a pair
-        kickers = [highPairRank, lowPairRank, kicker] + [0] * 2
+        kickers = [highPairRank, lowPairRank, kicker] + [-1] * 2
     elif (counts[0][0] == 2):
         category = 1 #one pair
         pairRank = counts[0][1]
@@ -106,12 +107,16 @@ def evalHand(cards: List[int]): #evaluate 5-card hand
         for card in cards: #get remaining ranks that aren't part of the pair
             if (card % 13 != pairRank):
                 remainingRanks.append(card % 13)
-        kickers = [pairRank] + sorted(remainingRanks, reverse=True) + [0]
+        kickers = [pairRank] + sorted(remainingRanks, reverse=True) + [-1]
     else:
         category = 0 #high card
         allRanks = list()
-        for rank in range(ranks):
+        for rank in range(ranks): #get every different rank
             if (ranks[rank] == 1):
                 allRanks.append(rank)
         kicker = sorted(allRanks, reverse=True)
     
+    return (category, ) + tuple(kickers)
+
+# def evalBoard(hole: List[int], board: List[int]):
+#     cards = hole + board
