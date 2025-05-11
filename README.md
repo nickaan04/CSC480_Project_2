@@ -1,1 +1,1 @@
-# CSC480_Project_2
+# Nickaan Jahadi
