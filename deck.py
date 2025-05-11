@@ -111,12 +111,18 @@ def evalHand(cards: List[int]): #evaluate 5-card hand
     else:
         category = 0 #high card
         allRanks = list()
-        for rank in range(ranks): #get every different rank
+        for rank in range(len(ranks)): #get every different rank
             if (ranks[rank] == 1):
                 allRanks.append(rank)
-        kicker = sorted(allRanks, reverse=True)
+        kickers = sorted(allRanks, reverse=True)
     
     return (category, ) + tuple(kickers)
 
-# def evalBoard(hole: List[int], board: List[int]):
-#     cards = hole + board
+def evalBoard(hole: List[int], board: List[int]): #return best 5-card hand out of all 7 cards
+    cards = hole + board
+    bestHand = None
+    for combo in itertools.combinations(cards, 5): #iterate through all possible combinations
+        currentHand = evalHand(list(combo))
+        if bestHand is None or currentHand > bestHand:
+            bestHand = currentHand
+    return bestHand #returns tuple of best hand
