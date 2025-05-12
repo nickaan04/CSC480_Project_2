@@ -1,9 +1,9 @@
-from typing import *
+from typing import List
 from random import sample
 import itertools
 
-RANKS = {0 : 2, 1 : 3, 2 : 4, 3 : 5, 4 : 6, 5 : 7, 6 : 8, 7 : 9, 8 : 10, 9 : 'J', 10 : 'Q', 11 : 'K', 12 : 'A'} #maybe dont need
-SUITS = {0 : '♣', 1 : '♦', 2 : '♥', 3 : '♠'} #maybe dont need
+RANKS = {0 : 2, 1 : 3, 2 : 4, 3 : 5, 4 : 6, 5 : 7, 6 : 8, 7 : 9, 8 : 10, 9 : 'J', 10 : 'Q', 11 : 'K', 12 : 'A'}
+SUITS = {0 : '♣', 1 : '♦', 2 : '♥', 3 : '♠'}
 
 def initDeck(): #initialize and shuffle deck
     return list(range(52))
@@ -14,11 +14,9 @@ def drawCards(deck: List, numCards: int): #return cards drawn
         deck.remove(card) #remove drawn cards from deck
     return cards
 
-#(maybe dont need)
 def rank(card: int): #return rank for a card integer
     return RANKS[card % 13]
 
-#(maybe dont need)
 def suit(card: int): #return suit for a card integer
     return SUITS[card // 13]
 
@@ -119,10 +117,20 @@ def evalHand(cards: List[int]): #evaluate 5-card hand
     return (category, ) + tuple(kickers)
 
 def evalBoard(hole: List[int], board: List[int]): #return best 5-card hand out of all 7 cards
-    cards = hole + board
     bestHand = None
-    for combo in itertools.combinations(cards, 5): #iterate through all possible combinations
+    bestCombo = None
+    for combo in itertools.combinations(hole + board, 5): #iterate through all possible combinations
         currentHand = evalHand(list(combo))
         if bestHand is None or currentHand > bestHand:
             bestHand = currentHand
-    return bestHand #returns tuple of best hand
+            bestCombo = combo
+    return bestHand, bestCombo #returns tuple of best hand and actual cards from the hand
+
+def dealCards(knownBoard: List[int], deck: List[int]): #simulates a Monte Carlo world by dealing opponent cards and completing the board
+    newDeck = deck.copy() #copy deck to avoid changing original
+    oppHole = drawCards(newDeck, 2) #draw cards for opponent
+
+    newCommCards = drawCards(newDeck, 5 - len(knownBoard)) #draw remaining community cards
+    fullBoard = knownBoard + newCommCards
+
+    return oppHole, fullBoard
